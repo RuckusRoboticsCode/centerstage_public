@@ -30,10 +30,10 @@ public class BlueCloseLines implements AutonomousOpMode {
     private Pose2d startingPose;
 
     private int propNumber;
-    private final int FIRST_PIXEL_HEIGHT = 750;
+    private final int FIRST_PIXEL_HEIGHT = 550;
     private final boolean parkInCorner;
     private final double DEPOSIT_TIME = 1.5;
-    private double PIXEL_SCORING_OFFSET = 0.0;
+    private double PIXEL_SCORING_OFFSET = 1.25;
     private final double FORWARD_FROM_PIXEL = 8;
     private final double FORWARD_OFFSET = -1.5;
 
@@ -131,6 +131,15 @@ public class BlueCloseLines implements AutonomousOpMode {
                     timer.reset();
                     previousState = AutonomousStates.DROP_PIXEL;
                 } else if (previousState == AutonomousStates.DROP_PIXEL && timer.seconds() > DEPOSIT_TIME) {
+//                    currentState = AutonomousStates.PARK;
+                    currentState = AutonomousStates.LIFT_SLIDES_AFTER_SCORE;
+                }
+                break;
+            case LIFT_SLIDES_AFTER_SCORE:
+                if (previousState != currentState) {
+                    targetPosition = FIRST_PIXEL_HEIGHT + 250;
+                    previousState = AutonomousStates.LIFT_SLIDES_AFTER_SCORE;
+                } else if (slides.atTarget()) {
                     currentState = AutonomousStates.PARK;
                 }
                 break;
@@ -254,7 +263,7 @@ public class BlueCloseLines implements AutonomousOpMode {
                         .lineToSplineHeading(new Pose2d(28, -46, Math.toRadians(225)))
                         .lineToLinearHeading(
                                 new Pose2d(RedLocations.BACKDROP_RIGHT.getPosition(), Math.toRadians(180))
-                                        .plus(new Pose2d(FORWARD_OFFSET, -1 + PIXEL_SCORING_OFFSET, 0))
+                                        .plus(new Pose2d(FORWARD_OFFSET, PIXEL_SCORING_OFFSET, 0))
                         )
                         .build()
         );

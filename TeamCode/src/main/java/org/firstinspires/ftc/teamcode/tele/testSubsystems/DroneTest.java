@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.tele.subsystems.DroneLauncher;
 import org.firstinspires.ftc.teamcode.tele.subsystems.Robot;
 import org.firstinspires.ftc.teamcode.tele.subsystems.RobotBuilder;
 
-//@Disabled
+@Disabled
 @TeleOp(name="Drone Test", group="Tests")
 public class DroneTest extends OpModeEx {
 

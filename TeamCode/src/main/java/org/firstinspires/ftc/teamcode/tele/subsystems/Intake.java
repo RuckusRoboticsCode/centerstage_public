@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,6 +22,11 @@ public class Intake implements Subsystem {
     private static final double MAX_CURRENT_DRAW = 0.0;
     private boolean adjustForVoltage = false;
     private boolean isRunning;
+    private boolean allowIntake = true;
+    private boolean allowOuttake = true;
+    private boolean isOuttaking = false;
+    private final double OUTTAKE_TIME = 0.5;
+    private ElapsedTime time = new ElapsedTime();
 
     private double power = 0.0;
 
@@ -40,15 +46,20 @@ public class Intake implements Subsystem {
 
     @Override
     public void updateNoVoltage() {
-        if(gamepadEx.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
+        if(gamepadEx.getButton(GamepadKeys.Button.RIGHT_BUMPER) && allowIntake) {
             power = 1.0;
             this.isRunning = true;
-        } else if (gamepadEx.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
+        } else if (gamepadEx.getButton(GamepadKeys.Button.LEFT_BUMPER) && allowOuttake) {
+            power = -1.0;
+            this.isRunning = true;
+        } else if (!isOuttaking){
+            power = 0.0;
+            this.isRunning = false;
+        } else if (time.seconds() < OUTTAKE_TIME) {
             power = -1.0;
             this.isRunning = true;
         } else {
-            power = 0.0;
-            this.isRunning = false;
+            this.isOuttaking = false;
         }
         intake.setPower(power);
     }
@@ -96,6 +107,22 @@ public class Intake implements Subsystem {
     @Override
     public double getMaxCurrent() {
         return MAX_CURRENT_DRAW;
+    }
+
+    public void setAllowIntake(boolean allowIntake) {
+        this.allowIntake = allowIntake;
+    }
+
+    public void setAllowOuttake(boolean allowOuttake) {
+        this.allowOuttake = allowOuttake;
+    }
+
+    public void outtake() {
+        isOuttaking = true;
+    }
+
+    public boolean getIsOuttaking() {
+        return isOuttaking;
     }
 
     @Override

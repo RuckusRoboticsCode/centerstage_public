@@ -48,8 +48,8 @@ public class Drivetrain implements Subsystem {
                 Constants.HeadingPIDF.kp.value,
                 Constants.HeadingPIDF.ki.value,
                 Constants.HeadingPIDF.kd.value);
-        pidfController.setTargetTolerance(2);
-        pidfController.setTargetPosition(targetAngleDeg);
+        pidfController.setTargetTolerance(Math.toRadians(3));
+        pidfController.setTargetPosition(Math.toRadians(targetAngleDeg));
     }
 
     private void configureMotors() {
@@ -87,8 +87,6 @@ public class Drivetrain implements Subsystem {
         double leftY = gamepadEx1.getLeftY();
         double leftX = gamepadEx1.getLeftX();
         double rightX = gamepadEx1.getRightX();
-        double heading = Math.toDegrees(imuControl.getHeading());
-        telemetry.addData("Heading", heading);
 
         if (gamepadEx1.wasJustPressed(GamepadKeys.Button.Y)) {
             headingLock = !headingLock;
@@ -96,6 +94,7 @@ public class Drivetrain implements Subsystem {
 
         if (gamepadEx1.wasJustPressed(GamepadKeys.Button.X)) {
 //            imuControl.setYawOffset(imuControl.getHeading());
+            double heading = imuControl.getHeading();
             imuControl.setYawOffset((2 * Math.PI) - Math.toRadians(heading));
         }
 
@@ -123,6 +122,8 @@ public class Drivetrain implements Subsystem {
             powerBL = ((leftY - leftX + rightX) / denominator);
             powerBR = ((leftY + leftX - rightX) / denominator);
         } else {
+            double heading = imuControl.getHeading();
+            telemetry.addData("Heading", Math.toDegrees(heading));
             double pidfOutput = pidfController.update(heading);
 
             denominator = Math.max(Math.abs(leftY) + Math.abs(leftX) + Math.abs(pidfOutput), 1.0);

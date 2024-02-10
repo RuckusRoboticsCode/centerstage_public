@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.caching.CachingDcMotorEX;
 import org.firstinspires.ftc.teamcode.helper.Hardware;
+import org.firstinspires.ftc.teamcode.helper.HeadingPIDFController;
 import org.firstinspires.ftc.teamcode.helper.IMUControl;
 import org.firstinspires.ftc.teamcode.helper.OpModeEx;
 import org.firstinspires.ftc.teamcode.helper.PIDFController;
@@ -21,12 +22,12 @@ import org.firstinspires.ftc.teamcode.helper.PIDFController;
 public class HeadingPIDTuning extends OpModeEx {
 
     private DcMotorEx FL, FR , BL, BR;
-    private PIDFController pidfController;
+    private HeadingPIDFController pidfController;
 
     private IMUControl imuControl;
 
     public static double targetHeadingDeg = 0.0;
-    public static double outputLimit = 0.3;
+    public static double outputLimit = 0.0;
     public static double kp = 0.0;
     public static double ki = 0.0;
     public static double kd = 0.0;
@@ -49,9 +50,9 @@ public class HeadingPIDTuning extends OpModeEx {
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         imuControl = new IMUControl(hardwareMap, telemetry, 0);
-        imuControl.setYawOffset(imuControl.getHeading());
+//        imuControl.setYawOffset(imuControl.getHeading());
 
-        pidfController = new PIDFController(0, 0, 0);
+        pidfController = new HeadingPIDFController(0, 0, 0);
         pidfController.setTargetTolerance(0);
 
         telemetry = new MultipleTelemetry(FtcDashboard.getInstance().getTelemetry(), telemetry);
@@ -59,9 +60,9 @@ public class HeadingPIDTuning extends OpModeEx {
 
     @Override
     public void loop() {
-        double currentHeading = Math.toDegrees(imuControl.getHeading());
+        double currentHeading = imuControl.getHeading();
         pidfController.setCoefficients(kp, ki, kd);
-        pidfController.setTargetPosition(targetHeadingDeg);
+        pidfController.setTargetPosition(Math.toRadians(targetHeadingDeg));
         pidfController.setOutputDerivativeLimit(outputLimit);
 
         double power = pidfController.update(currentHeading);
@@ -72,8 +73,9 @@ public class HeadingPIDTuning extends OpModeEx {
         BR.setPower(power);
 
         telemetry.addData("Power", power);
-        telemetry.addData("Current Heading", currentHeading);
+        telemetry.addData("Current Heading", Math.toDegrees(currentHeading));
         telemetry.addData("Target Heading", targetHeadingDeg);
-        telemetry.addData("Error", targetHeadingDeg - currentHeading);
+//        telemetry.addData("Error", targetHeadingDeg - currentHeading);
+        telemetry.addData("Error", Math.toDegrees(pidfController.getPreviousError()));
     }
 }

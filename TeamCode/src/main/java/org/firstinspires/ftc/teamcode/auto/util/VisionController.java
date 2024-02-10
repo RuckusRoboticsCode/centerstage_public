@@ -4,6 +4,7 @@ import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.auto.util.CustomTypes.PropLocation;
 import org.firstinspires.ftc.teamcode.helper.Constants;
+import org.firstinspires.ftc.teamcode.helper.CustomAprilTagLibrary;
 import org.firstinspires.ftc.teamcode.vision.PropDetection.HSV.LeftPropProcessor;
 import org.firstinspires.ftc.teamcode.vision.PropDetection.HSV.RightPropProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -26,22 +28,32 @@ public class VisionController {
 	private final VisionPortal visionPortal;
 	private final RightPropProcessor rightPropProcessor;
 	private final LeftPropProcessor leftPropProcessor;
-	private final AprilTagProcessor aprilTagProcessor;
+	private final CustomAprilTagProcessor aprilTagProcessor;
 	private final Telemetry telemetry;
 
 	public VisionController(HardwareMap hardwareMap, boolean isDetectingAprilTags,
 							boolean detectRed, boolean detectRight,
 							Telemetry telemetry, FtcDashboard ftcDashboard) {
 
-		aprilTagProcessor = new AprilTagProcessor.Builder()
+		aprilTagProcessor = new CustomAprilTagProcessor.Builder()
 				.setDrawAxes(true)
 				.setDrawCubeProjection(true)
 				.setDrawTagOutline(true)
 				.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-				.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+				.setTagLibrary(CustomAprilTagLibrary.getCenterStageTagLibrary())
 				.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
 				.setLensIntrinsics(822.317f, 822.317f, 319.495f, 242.502f)
 				.build();
+
+//		aprilTagProcessor = new AprilTagProcessor.Builder()
+//				.setDrawAxes(true)
+//				.setDrawCubeProjection(true)
+//				.setDrawTagOutline(true)
+//				.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+//				.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+//				.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+//				.setLensIntrinsics(822.317f, 822.317f, 319.495f, 242.502f)
+//				.build();
 
 		aprilTagProcessor.setDecimation(1);
 
@@ -57,7 +69,11 @@ public class VisionController {
 					.build();
 
 			if (ftcDashboard != null) {
-				ftcDashboard.startCameraStream(rightPropProcessor, 0);
+				if (isDetectingAprilTags) {
+					ftcDashboard.startCameraStream(aprilTagProcessor, 0);
+				} else {
+					ftcDashboard.startCameraStream(rightPropProcessor, 0);
+				}
 			}
 
 			visionPortal.setProcessorEnabled(rightPropProcessor, !isDetectingAprilTags);
@@ -74,7 +90,11 @@ public class VisionController {
 					.build();
 
 			if (ftcDashboard != null) {
-				ftcDashboard.startCameraStream(leftPropProcessor, 0);
+				if (isDetectingAprilTags) {
+					ftcDashboard.startCameraStream(aprilTagProcessor, 0);
+				} else {
+					ftcDashboard.startCameraStream(leftPropProcessor, 0);
+				}
 			}
 
 			visionPortal.setProcessorEnabled(leftPropProcessor, !isDetectingAprilTags);
@@ -145,6 +165,25 @@ public class VisionController {
 		}
 	}
 
+	public ArrayList<Pose2d> getRaw() {
+		ArrayList<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+		ArrayList<Pose2d> pose2ds = new ArrayList<>();
+
+		for (AprilTagDetection detection : detections) {
+			if(detection.id <= 6 && detection.id >= 0) {
+				double relativeHeading = -detection.ftcPose.yaw;
+				double xRelative = detection.ftcPose.x - Constants.cameraLateralOffset; // relative position (lateral)
+				double yRelative = detection.ftcPose.y + Constants.cameraPerpendicularOffset; // relative position (forward)
+
+				pose2ds.add(
+						new Pose2d(yRelative, xRelative, relativeHeading)
+				);
+			}
+		}
+
+		return pose2ds;
+	}
+
 	public void enableAprilTags() {
 		if(leftPropProcessor == null) {
 			visionPortal.setProcessorEnabled(rightPropProcessor, false);
@@ -160,31 +199,43 @@ public class VisionController {
 		ArrayList<Pose2d> poses = new ArrayList<>();
 
 		for (AprilTagDetection detection : detections) {
-			if(detection.id <= 6 && detection.id >= 0) {
-				VectorF tagPosition = detection.metadata.fieldPosition; // absolute position
-				double xRelative = detection.ftcPose.x - Constants.cameraPerpendicularOffset; // relative position (lateral)
-				double yRelative = detection.ftcPose.y - Constants.cameraLateralOffset; // relative position (forward)
+			if (detection.metadata != null) {
+				if (detection.id <= 6 && detection.id >= 0) {
+//				double relativeHeading = Math.PI - heading;
+					double botHeading = -heading;
+					VectorF tagPosition = detection.metadata.fieldPosition; // absolute position
+					double xRelative = detection.ftcPose.x - Constants.cameraLateralOffset; // relative position (lateral)
+					double yRelative = detection.ftcPose.y - Constants.cameraPerpendicularOffset; // relative position (forward)
 
-				// translate to FTC/RR co-ordinate system
-				double botHeading = -heading;
-				double xAbsolute = xRelative * Math.cos(botHeading) + yRelative * Math.sin(botHeading);
-				double yAbsolute = yRelative * Math.cos(botHeading) - xRelative * Math.sin(botHeading);
+					// translate to FTC/RR co-ordinate system
+//				double botHeading = -heading;
+//				double xAbsolute = xRelative * Math.cos(botHeading) + yRelative * Math.sin(botHeading);
+//				double yAbsolute = yRelative * Math.cos(botHeading) - xRelative * Math.sin(botHeading);
 //				double xAbsolute = xRelative * Math.sin(heading) + yRelative * Math.cos(heading);
 //				double yAbsolute = yRelative * Math.sin(heading) - xRelative * Math.cos(heading);
+//				double xAbsolute = yRelative * Math.cos(relativeHeading) - xRelative * Math.sin(relativeHeading);
+//				double yAbsolute = yRelative * Math.sin(relativeHeading) + xRelative * Math.cos(relativeHeading);
+					double xAbsolute = xRelative * Math.cos(botHeading) + yRelative * Math.sin(botHeading);
+					double yAbsolute = xRelative * -Math.sin(botHeading) + yRelative * Math.cos(botHeading);
 
-				Pose2d pose = new Pose2d(
+					Pose2d pose = new Pose2d(
 						/*
 						perpendicular offset is front/back (front is positive)
 						lateral offset is left/right (right is positive)
 						 */
-//						tagPosition.get(0) - xAbsolute,
+							tagPosition.get(0) + yAbsolute,
+							tagPosition.get(1) - xAbsolute,
+//						tagPosition.get(0) + xAbsolute,
 //						tagPosition.get(1) - yAbsolute,
-						tagPosition.get(0) + yAbsolute,
-						tagPosition.get(1) - xAbsolute,
-						heading
-				);
+//						tagPosition.get(0) - yAbsolute,
+//						tagPosition.get(1) + xAbsolute,
+//						relativeHeading
+//							Math.toDegrees(relativeHeading)
+							heading
+					);
 
-				poses.add(pose);
+					poses.add(pose);
+				}
 			}
 		}
 		return poses;

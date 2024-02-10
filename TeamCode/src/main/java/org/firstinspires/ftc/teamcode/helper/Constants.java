@@ -34,7 +34,7 @@ public class Constants {
     }
 
     public enum HeadingPIDF {
-        kp(0.04),
+        kp(0.95),
         ki(0.0),
         kd(0.0);
 

@@ -56,7 +56,9 @@ public class LinearSlides implements Subsystem {
                 Constants.SlidesPIDF.kg.value
         );
         pidfController.setTargetTolerance(20);
-        pidfController.setOutputDerivativeLimit(derivativeLimit);
+        if (derivativeLimit != 0.0) {
+            pidfController.setOutputDerivativeLimit(derivativeLimit);
+        }
 
         configureMotors();
     }

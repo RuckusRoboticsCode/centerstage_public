@@ -21,6 +21,8 @@ public class Hardware {
 
     public static String IMU = "imu";
 
+    public static String COLOR_RANGE_SENSOR = "CR";
+
     public static RevHubOrientationOnRobot.LogoFacingDirection IMU_LOGO_DIRECTION = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
     public static RevHubOrientationOnRobot.UsbFacingDirection IMU_USB_DIRECTION = RevHubOrientationOnRobot.UsbFacingDirection.UP;
 }

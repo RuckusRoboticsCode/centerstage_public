@@ -24,7 +24,7 @@ public class DepositTuning extends OpModeEx {
 
     @Override
     public void init() {
-        deposit = new CachingServo(hardwareMap.get(Servo.class, Hardware.DEPOSIT_SERVO_RIGHT));
+        deposit = hardwareMap.get(Servo.class, Hardware.DEPOSIT_RELEASE_SERVO);
         gamepadEx1 = new GamepadEx(gamepad1);
         gamepadEx1.readButtons();
     }

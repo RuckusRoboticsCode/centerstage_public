@@ -30,11 +30,11 @@ public class RedFarLines implements AutonomousOpMode {
     private Pose2d startingPose;
 
     private int propNumber;
-    private final int FIRST_PIXEL_HEIGHT = 700;
+    private final int FIRST_PIXEL_HEIGHT = 550;
     private final boolean parkInCorner;
     private final double DELAY;
     private final double DEPOSIT_TIME = 1.5;
-    private double PIXEL_SCORING_OFFSET = 0.0;
+    private double PIXEL_SCORING_OFFSET = 1.25;
     private final double FORWARD_OFFSET = -1.5;
 
     private AutonomousStates previousState = null;
@@ -114,8 +114,8 @@ public class RedFarLines implements AutonomousOpMode {
                     drive.followTrajectorySequenceAsync(spikeMark.get(propNumber));
                     previousState = AutonomousStates.DRIVE_TO_SPIKE_MARK;
                 } else if (!drive.isBusy()) {
-//                    currentState = AutonomousStates.DRIVE_TO_BACKDROP;
-                    currentState = AutonomousStates.STOP;
+                    currentState = AutonomousStates.DRIVE_TO_BACKDROP;
+//                    currentState = AutonomousStates.STOP;
                 }
                 break;
             case DRIVE_TO_BACKDROP:
@@ -142,6 +142,15 @@ public class RedFarLines implements AutonomousOpMode {
                     timer.reset();
                     previousState = AutonomousStates.DROP_PIXEL;
                 } else if (previousState == AutonomousStates.DROP_PIXEL && timer.seconds() > DEPOSIT_TIME) {
+//                    currentState = AutonomousStates.PARK;
+                    currentState = AutonomousStates.LIFT_SLIDES_AFTER_SCORE;
+                }
+                break;
+            case LIFT_SLIDES_AFTER_SCORE:
+                if (previousState != currentState) {
+                    targetPosition = FIRST_PIXEL_HEIGHT + 250;
+                    previousState = AutonomousStates.LIFT_SLIDES_AFTER_SCORE;
+                } else if (slides.atTarget()) {
                     currentState = AutonomousStates.PARK;
                 }
                 break;
@@ -198,7 +207,8 @@ public class RedFarLines implements AutonomousOpMode {
                         .lineToConstantHeading(new Vector2d(-46, -48))
                         .lineToConstantHeading(new Vector2d(-33, -48))
                         .lineToConstantHeading(new Vector2d(-35, -12.5))
-                        .turn(Math.toRadians(-90))
+                        .lineToLinearHeading(new Pose2d(-35, -12.5, Math.toRadians(180)))
+//                        .turn(Math.toRadians(90))
                         .build()
         );
 
@@ -210,7 +220,8 @@ public class RedFarLines implements AutonomousOpMode {
                         .lineToConstantHeading(new Vector2d(-36, -41))
                         .lineToConstantHeading(new Vector2d(-57, -41))
                         .lineToConstantHeading(new Vector2d(-57, -12.5))
-                        .turn(Math.toRadians(-90))
+                        .lineToLinearHeading(new Pose2d(-57, -12.5, Math.toRadians(180)))
+//                        .turn(Math.toRadians(90))
                         .build()
         );
 

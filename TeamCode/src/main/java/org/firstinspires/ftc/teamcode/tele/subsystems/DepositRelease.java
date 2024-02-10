@@ -97,4 +97,9 @@ public class DepositRelease implements Subsystem {
     public void stop() {
         isRunning = false;
     }
+
+    @Override
+    public String getName() {
+        return "depositRelease";
+    }
 }

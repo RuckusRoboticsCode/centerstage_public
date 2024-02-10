@@ -34,7 +34,7 @@ public class RedCloseLines implements AutonomousOpMode {
     private final double DEPOSIT_TIME = 1.5;
     private final double FORWARD_FROM_PIXEL = 8;
     private final double FORWARD_OFFSET = -1.5;
-    private double PIXEL_SCORING_OFFSET = 0.0;
+    private double PIXEL_SCORING_OFFSET = 1.25;
 
     private AutonomousStates previousState = null;
     private AutonomousStates currentState = AutonomousStates.INIT;
@@ -130,6 +130,15 @@ public class RedCloseLines implements AutonomousOpMode {
                     timer.reset();
                     previousState = AutonomousStates.DROP_PIXEL;
                 } else if (previousState == AutonomousStates.DROP_PIXEL && timer.seconds() > DEPOSIT_TIME) {
+//                    currentState = AutonomousStates.PARK;
+                    currentState = AutonomousStates.LIFT_SLIDES_AFTER_SCORE;
+                }
+                break;
+            case LIFT_SLIDES_AFTER_SCORE:
+                if (previousState != currentState) {
+                    targetPosition = FIRST_PIXEL_HEIGHT + 250;
+                    previousState = AutonomousStates.LIFT_SLIDES_AFTER_SCORE;
+                } else if (slides.atTarget()) {
                     currentState = AutonomousStates.PARK;
                 }
                 break;

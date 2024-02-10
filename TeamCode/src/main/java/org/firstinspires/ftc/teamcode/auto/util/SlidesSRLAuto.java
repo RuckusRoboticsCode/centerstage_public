@@ -30,12 +30,14 @@ public class SlidesSRLAuto {
 
 		this.telemetry = telemetry;
 		this.maxEncoders = maxEncoders;
-		this.pidfController = new PIDFController(Constants.SlidesPIDF.kp.value,
+		this.pidfController = new PIDFController(
+				Constants.SlidesPIDF.kp.value * 1.25,
 				Constants.SlidesPIDF.ki.value,
-				Constants.SlidesPIDF.kd.value);
+				Constants.SlidesPIDF.kd.value,
+				Constants.SlidesPIDF.kg.value);
 
 		pidfController.setTargetTolerance(20);
-		pidfController.setOutputDerivativeLimit(maxROC);
+//		pidfController.setOutputDerivativeLimit(maxROC);
 
 		leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
